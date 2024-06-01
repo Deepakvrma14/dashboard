@@ -16,10 +16,10 @@ export const darkTheme = {
   background: "#121212",
   color: "#ffffff",
   chartColors: {
-    severity: "#ff4757",
-    protocol: "#1e90ff",
-    srcIp: "#fffa65",
-    destIp: "#2ed573",
-    category: "#ffa502",
+    srcIp: "#8884d8",
+    destIp: "#82ca9d",
+    category: "#ffc658",
+    protocol: "#ff7300",
   },
+  tableBackground: "#1e1e1e",
 };

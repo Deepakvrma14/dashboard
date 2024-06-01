@@ -1,12 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useFetchData } from "../hooks/useFetchData";
-import { Table } from "antd";
 import {
   LineChart,
   Line,
   BarChart,
   Bar,
-
   Tooltip,
   CartesianGrid,
   XAxis,
@@ -20,12 +18,20 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-
 } from "recharts";
+import { darkTheme } from "../theme";
 
 const Dashboard = () => {
   const { data, loading } = useFetchData("/data/eve.json");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      setIsMobile(window.innerWidth <= 768);
+    });
+  }, []);
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -80,27 +86,50 @@ const Dashboard = () => {
     .slice(0, 10)
     .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
 
-  const columns = [
-    { title: "Timestamp", dataIndex: "timestamp", key: "timestamp" },
-    { title: "Source IP", dataIndex: "src_ip", key: "src_ip" },
-    { title: "Destination IP", dataIndex: "dest_ip", key: "dest_ip" },
-    { title: "Event Type", dataIndex: "event_type", key: "event_type" },
-    { title: "Protocol", dataIndex: "proto", key: "proto" },
-  ];
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const currentData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#1e1e1e", color: "#fff" }}>
-      <div style={{ textAlign: "center" }}>
-        <h1>Network Alert Dashboard</h1>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: darkTheme.background,
+        color: darkTheme.color,
+      }}
+    >
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <span role="img" aria-label="dashboard" style={{ fontSize: "50px" }}>
+          📊
+        </span>
+        <h1
+          style={{
+            color: darkTheme.color,
+            fontFamily: "Arial, sans-serif",
+            fontSize: "2.5em",
+          }}
+        >
+          Network Alert Dashboard
+        </h1>
+        <p style={{ color: darkTheme.color, fontFamily: "Arial, sans-serif" }}>
+          This dashboard provides insights into network alerts generated from
+          various source and destination IPs, categorized by alert types and
+          protocols used.
+        </p>
       </div>
 
-      
-
       <div style={{ marginBottom: "40px" }}>
-        <h2>Source IPs</h2>
-        <p>
-          The scatter plot shows the top source IP addresses that generated the
-          most alerts.
+        <h2 style={{ color: darkTheme.color }}>Top Source IPs</h2>
+        <p style={{ color: darkTheme.color }}>
+          The scatter plot displays the top source IP addresses that generated
+          the most alerts. Hover over the points to see the exact number of
+          alerts for each IP address.
         </p>
         <ResponsiveContainer width="100%" height={400}>
           <ScatterChart>
@@ -109,8 +138,8 @@ const Dashboard = () => {
             <YAxis type="number" dataKey="value" stroke="#fff" />
             <Tooltip
               formatter={(value, name) => [
-                `${value} alerts`,
-                `Source IP: ${name}`,
+                `${value} `,
+                ` ${name}`,
               ]}
               cursor={{ strokeDasharray: "3 3" }}
             />
@@ -118,17 +147,18 @@ const Dashboard = () => {
             <Scatter
               name="Source IPs"
               data={formatDataForChart(topSrcIpData)}
-              fill="#8884d8"
+              fill={darkTheme.chartColors.srcIp}
             />
           </ScatterChart>
         </ResponsiveContainer>
       </div>
 
       <div style={{ marginBottom: "40px" }}>
-        <h2>Destination IPs</h2>
-        <p>
+        <h2 style={{ color: darkTheme.color }}>Top Destination IPs</h2>
+        <p style={{ color: darkTheme.color }}>
           This line chart shows the number of alerts received by the top
-          destination IP addresses.
+          destination IP addresses. Hover over the lines to see the detailed
+          alert counts.
         </p>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={formatDataForChart(destIpData)}>
@@ -138,20 +168,25 @@ const Dashboard = () => {
             <Tooltip
               formatter={(value, name) => [
                 `${value} alerts`,
-                `Destination IP: ${name}`,
+                `${name}`,
               ]}
             />
             <Legend />
-            <Line type="monotone" dataKey="value" stroke="#ff7300" />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={darkTheme.chartColors.destIp}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       <div style={{ marginBottom: "40px" }}>
-        <h2>Alerts by Category</h2>
-        <p>
-          The radar chart visualizes the number of alerts for each alert
-          category.
+        <h2 style={{ color: darkTheme.color }}>Alerts by Category</h2>
+        <p style={{ color: darkTheme.color }}>
+          The radar chart visualizes the number of alerts for each category.
+          Categories help in understanding the types of threats and their
+          frequency.
         </p>
         <ResponsiveContainer width="100%" height={400}>
           <RadarChart data={formatDataForChart(alertCategoryData)}>
@@ -160,8 +195,8 @@ const Dashboard = () => {
             <PolarRadiusAxis stroke="#fff" />
             <Radar
               dataKey="value"
-              stroke="#8884d8"
-              fill="#8884d8"
+              stroke={darkTheme.chartColors.category}
+              fill={darkTheme.chartColors.category}
               fillOpacity={0.6}
             />
             <Tooltip
@@ -172,45 +207,196 @@ const Dashboard = () => {
       </div>
 
       <div style={{ marginBottom: "40px" }}>
-        <h2>Alerts by Protocol</h2>
-        <p>
+        <h2 style={{ color: darkTheme.color }}>Alerts by Protocol</h2>
+        <p style={{ color: darkTheme.color }}>
           This bar chart displays the number of alerts for each network protocol
-          used.
+          used. Understanding the protocols involved can help in identifying the
+          nature of the traffic.
         </p>
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={formatDataForChart(protocolData)}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="name" stroke="#fff" />
-            <YAxis stroke="#fff" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#888" />
+            <XAxis dataKey="name" stroke="#ddd" />
+            <YAxis stroke="#ddd" />
             <Tooltip
               formatter={(value, name) => [
                 `${value} alerts`,
-                `Protocol: ${name}`,
+                ` ${name}`,
               ]}
             />
             <Legend />
-            <Bar dataKey="value" fill="#82ca9d" />
+            <Bar dataKey="value" fill={darkTheme.chartColors.protocol} />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      <div style={{ marginBottom: "40px", color: "#fff" }}>
-        <h2>Alert Details</h2>
-        <p>This table shows the details of each alert.</p>
-        <Table
-          bordered
-          columns={columns}
-          dataSource={data}
+      <div style={{ marginBottom: "40px" }}>
+        <h2 style={{ color: darkTheme.color }}>Alert Details</h2>
+        <p style={{ color: darkTheme.color }}>
+          This table provides detailed information about each alert, including
+          timestamp, source IP, destination IP, event type, and protocol used.
+        </p>
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              backgroundColor: darkTheme.tableBackground,
+              color: darkTheme.color,
+              boxShadow: "0 2px 15px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: darkTheme.headerBackground }}>
+                <th
+                  style={{
+                    padding: "15px",
+                    borderBottom: `1px solid ${darkTheme.borderColor}`,
+                    textAlign: "left",
+                  }}
+                >
+                  Timestamp
+                </th>
+                {!isMobile && (
+                  <th
+                    style={{
+                      padding: "15px",
+                      borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      textAlign: "left",
+                    }}
+                  >
+                    Source IP
+                  </th>
+                )}
+                {!isMobile && (
+                  <th
+                    style={{
+                      padding: "15px",
+                      borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      textAlign: "left",
+                    }}
+                  >
+                    Destination IP
+                  </th>
+                )}
+                <th
+                  style={{
+                    padding: "15px",
+                    borderBottom: `1px solid ${darkTheme.borderColor}`,
+                    textAlign: "left",
+                  }}
+                >
+                  Event Type
+                </th>
+                {!isMobile && (
+                  <th
+                    style={{
+                      padding: "15px",
+                      borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      textAlign: "left",
+                    }}
+                  >
+                    Protocol
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {currentData.map((item, index) => (
+                <tr key={index}>
+                  <td
+                    style={{
+                      padding: "10px",
+                      borderBottom: `1px solid ${darkTheme.borderColor}`,
+                    }}
+                  >
+                    {item.timestamp}
+                  </td>
+                  {!isMobile && (
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      }}
+                    >
+                      {item.src_ip}
+                    </td>
+                  )}
+                  {!isMobile && (
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      }}
+                    >
+                      {item.dest_ip}
+                    </td>
+                  )}
+                  <td
+                    style={{
+                      padding: "10px",
+                      borderBottom: `1px solid ${darkTheme.borderColor}`,
+                    }}
+                  >
+                    {item.event_type}
+                  </td>
+                  {!isMobile && (
+                    <td
+                      style={{
+                        padding: "10px",
+                        borderBottom: `1px solid ${darkTheme.borderColor}`,
+                      }}
+                    >
+                      {item.proto}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div
           style={{
-            backgroundColor: "#fff",
-            color: "#fff",
-            borderRadius: "10px",
-            overflow: "hidden",
-            border: "1px solid #ddd",
-            boxShadow: "0 2px 15px rgba(0, 0, 0, 0.1)",
-            padding: "20px",
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
           }}
-        />
+        >
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            style={{
+              marginRight: "10px",
+              padding: "10px 15px",
+              backgroundColor: currentPage === 1 ? "#888" : "#333",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: currentPage === 1 ? "not-allowed" : "pointer",
+            }}
+          >
+            Previous
+          </button>
+          <div style={{ color: darkTheme.color, padding: "10px" }}>
+            Page {currentPage} of {totalPages}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            style={{
+              padding: "10px 15px",
+              backgroundColor: currentPage === totalPages ? "#888" : "#333",
+              color: "#fff",
+              border: "none",
+              borderRadius: "5px",
+              cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+            }}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
