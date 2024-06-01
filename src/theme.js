@@ -13,13 +13,26 @@ export const GlobalStyle = createGlobalStyle`
 `;
 
 export const darkTheme = {
-  background: "#121212",
-  color: "#ffffff",
+  background: '#1e1e1e',
+  color: '#e0e0e0',
+  tableBackground: '#2e2e2e',
+  headerBackground: '#3e3e3e',
+  borderColor: '#444',
   chartColors: {
-    srcIp: "#8884d8",
-    destIp: "#82ca9d",
-    category: "#ffc658",
-    protocol: "#ff7300",
+    srcIp: '#82ca9d',
+    destIp: '#8884d8',
+    category: '#ffc658',
+    protocol: '#d0ed57',
   },
-  tableBackground: "#1e1e1e",
+  color1: "#EDEDED",
+  tableBackground1: "#2C2C2C",
+  headerBackground1: "#1A1A1A",
+  rowEven: "#333333",
+  rowOdd: "#2C2C2C",
+  expandedRow: "#1A1A1A",
+  expandedRowBackground: "#333333",
+  borderColor1: "#4A4A4A",
+  
 };
+
+
